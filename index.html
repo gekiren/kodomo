@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>子ども追加費用＆積立シミュレーター（制度明記・奨学金負債対応版）</title>
+    <title>子ども追加費用＆積立シミュレーター（全5パターン対応版）</title>
     <!-- FontAwesome icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -346,6 +346,7 @@
             font-weight: 600;
         }
 
+        /* Summary Dashboard */
         .summary-dashboard {
             background-color: var(--primary-light);
             border-radius: var(--radius);
@@ -577,16 +578,17 @@
 
         .preset-btn-group {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             margin-bottom: 12px;
+            flex-wrap: wrap;
         }
 
         .btn {
-            padding: 6px 12px;
+            padding: 6px 10px;
             border: 1px solid var(--border-color);
             background: white;
             border-radius: 6px;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
@@ -661,7 +663,7 @@
 <div class="container">
     <header>
         <h1><i class="fa-solid fa-child-reaching"></i> 子ども追加費用 ＆ 将来積立シミュレーター</h1>
-        <p>【東京都平均相場モデル】二人目・三人目の人数・年齢差（何歳で誕生か）を設定できる複数人対応版</p>
+        <p>【中央値・平均値・多パターン対応】二人目・三人目の人数・年齢差・住居費設定モデル</p>
     </header>
 
     <div class="grid-layout">
@@ -674,7 +676,7 @@
 
             <div class="mode-tab-container">
                 <button class="mode-tab-btn active" id="tab-btn-summary" onclick="switchInputMode('summary')">
-                    <i class="fa-solid fa-gauge"></i> 1. 概算・総額設定（東京平均）
+                    <i class="fa-solid fa-gauge"></i> 1. 概算・総額設定
                 </button>
                 <button class="mode-tab-btn" id="tab-btn-detail" onclick="switchInputMode('detail')">
                     <i class="fa-solid fa-list-check"></i> 2. 年齢別・詳細内訳の確認・編集
@@ -682,6 +684,35 @@
             </div>
 
             <div id="mode-content-summary">
+                <!-- コスト水準（5パターン）プリセット選択 -->
+                <div style="margin-bottom: 16px; background: #f0fff4; border: 1px solid #c6f6d5; padding: 12px; border-radius: 8px;">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: #276749; display: block; margin-bottom: 6px;">
+                        <i class="fa-solid fa-chart-pie"></i> 生活・教育コスト水準モデルの選択
+                    </label>
+                    <div class="preset-btn-group" style="margin-bottom: 4px;">
+                        <button class="btn" id="btn-cost-bottom25" onclick="applyCostModel('bottom25')">節約・下位25%（提案1）</button>
+                        <button class="btn" id="btn-cost-focused" onclick="applyCostModel('focused')">メリハリ集中（提案2）</button>
+                        <button class="btn active" id="btn-cost-median" onclick="applyCostModel('median')">堅実・中央値（標準）</button>
+                        <button class="btn" id="btn-cost-average" onclick="applyCostModel('average')">東京平均モデル</button>
+                        <button class="btn" id="btn-cost-high" onclick="applyCostModel('high')">ゆとり・高コスト（上位20%）</button>
+                    </div>
+                    <p style="font-size: 0.72rem; color: #4a5568; margin-top: 4px;" id="text-cost-model-desc">
+                        ※外れ値（高額課金層）を除いた実情に近い「中央値」をベースに設定しています。
+                    </p>
+                </div>
+
+                <!-- 進路コースプリセット -->
+                <div style="margin-bottom: 14px;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px;">
+                        進路コースプリセット
+                    </label>
+                    <div class="preset-btn-group">
+                        <button class="btn active" id="btn-preset-tokyo-standard" onclick="applyPreset('tokyo-standard')">東京標準（公立＋都立）</button>
+                        <button class="btn" id="btn-preset-tokyo-private-high" onclick="applyPreset('tokyo-private-high')">高校私立コース</button>
+                        <button class="btn" id="btn-preset-tokyo-exam" onclick="applyPreset('tokyo-exam')">中学受験・私立コース</button>
+                    </div>
+                </div>
+
                 <!-- 子ども人数の設定（二人目・三人目オプション） -->
                 <div class="section-title">
                     <i class="fa-solid fa-users"></i> 子ども人数・誕生設定（二人目・三人目）
@@ -733,6 +764,32 @@
                     </div>
                 </div>
 
+                <!-- 住居費の追加負担設定 -->
+                <div class="section-title">
+                    <i class="fa-solid fa-house"></i> 住居費の追加負担設定（住み替え・ローン増）
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>広めの家への住み替えパターン</label>
+                        <div class="input-wrapper">
+                            <select id="sel-housing-type" onchange="toggleHousingCustomInput(); recalculate();">
+                                <option value="none">住み替えなし（追加0円/月）</option>
+                                <option value="standard" selected>都内標準（2LDK→3LDK：月+3.5万円）</option>
+                                <option value="large">広い住まい（3LDK→4LDK等：月+5.0万円）</option>
+                                <option value="auto">子ども数に応じ増額（1人+2万 / 2人以上+4万）</option>
+                                <option value="custom">任意金額を指定</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="input-group" id="wrapper-housing-custom" style="display: none;">
+                        <label>追加住居費（月額）</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="inp-housing-custom" value="35000" oninput="recalculate()" step="5000">
+                            <span class="input-unit">円/月</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 行政・自治体制度＆助成金の設定 -->
                 <div class="section-title">
                     <i class="fa-solid fa-landmark"></i> 行政助成・公的制度（東京都等）の適用設定
@@ -754,17 +811,6 @@
                     <p style="font-size: 0.72rem; color: var(--text-muted); margin-left: 26px;">
                         ※都内在住の0〜18歳に支給される月5,000円（年6万円）を毎月負担軽減に充てます。
                     </p>
-                </div>
-
-                <div style="margin-bottom: 12px; margin-top: 14px;">
-                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px;">
-                        進路コースプリセット
-                    </label>
-                    <div class="preset-btn-group">
-                        <button class="btn active" id="btn-preset-tokyo-standard" onclick="applyPreset('tokyo-standard')">東京標準（公立＋都立）</button>
-                        <button class="btn" id="btn-preset-tokyo-private-high" onclick="applyPreset('tokyo-private-high')">高校私立コース</button>
-                        <button class="btn" id="btn-preset-tokyo-exam" onclick="applyPreset('tokyo-exam')">中学受験・私立コース</button>
-                    </div>
                 </div>
 
                 <div class="section-title">
@@ -832,27 +878,27 @@
                 </div>
 
                 <div class="section-title">
-                    <i class="fa-solid fa-shirt"></i> 習い事・通塾月額設定（1人あたり都平均）
+                    <i class="fa-solid fa-shirt"></i> 習い事・通塾月額設定（1人あたり）
                 </div>
                 <div class="input-grid">
                     <div class="input-group">
-                        <label>小学生 習い事・通塾費<span class="badge-tokyo">東京平均</span></label>
+                        <label>小学生 習い事・通塾費</label>
                         <div class="input-wrapper">
-                            <input type="number" id="inp-cram-elem" value="30000" oninput="syncSummaryCramToDetails(); recalculate();" step="1000">
+                            <input type="number" id="inp-cram-elem" value="25000" oninput="syncSummaryCramToDetails(); recalculate();" step="1000">
                             <span class="input-unit">円/月</span>
                         </div>
                     </div>
                     <div class="input-group">
-                        <label>中学生 通塾・部活動費<span class="badge-tokyo">東京平均</span></label>
+                        <label>中学生 通塾・部活動費</label>
                         <div class="input-wrapper">
-                            <input type="number" id="inp-cram-jhs" value="40000" oninput="syncSummaryCramToDetails(); recalculate();" step="1000">
+                            <input type="number" id="inp-cram-jhs" value="32000" oninput="syncSummaryCramToDetails(); recalculate();" step="1000">
                             <span class="input-unit">円/月</span>
                         </div>
                     </div>
                     <div class="input-group">
-                        <label>高校生 予備校・補習費<span class="badge-tokyo">東京平均</span></label>
+                        <label>高校生 予備校・補習費</label>
                         <div class="input-wrapper">
-                            <input type="number" id="inp-cram-hs" value="45000" oninput="syncSummaryCramToDetails(); recalculate();" step="1000">
+                            <input type="number" id="inp-cram-hs" value="36000" oninput="syncSummaryCramToDetails(); recalculate();" step="1000">
                             <span class="input-unit">円/月</span>
                         </div>
                     </div>
@@ -885,7 +931,7 @@
                     <div class="input-group">
                         <label>子ども1人あたりの目標蓄積金額</label>
                         <div class="input-wrapper">
-                            <input type="number" id="inp-target-savings" value="6000000" oninput="recalculate()" step="500000">
+                            <input type="number" id="inp-target-savings" value="5000000" oninput="recalculate()" step="500000">
                             <span class="input-unit">円</span>
                         </div>
                     </div>
@@ -924,7 +970,7 @@
 
                 <!-- 世帯全体の目標貯蓄額動的案内バッジ -->
                 <div class="target-summary-badge" id="badge-total-target">
-                    <i class="fa-solid fa-bullseye"></i> 世帯全体の目標貯蓄額：計 600 万円（子ども1人分）
+                    <i class="fa-solid fa-bullseye"></i> 世帯全体の目標貯蓄額：計 500 万円（子ども1人分）
                 </div>
             </div>
 
@@ -1026,7 +1072,7 @@
             
             <div class="custom-chart-wrapper">
                 <div class="chart-legend">
-                    <div class="legend-item"><div class="legend-color" style="background-color: var(--primary);"></div>世帯直接支払い（学費＋生活費）</div>
+                    <div class="legend-item"><div class="legend-color" style="background-color: var(--primary);"></div>世帯直接支払い（学費＋生活＋住居増）</div>
                     <div class="legend-item"><div class="legend-color" style="background-color: var(--success);"></div>世帯将来積立額</div>
                 </div>
                 <div class="chart-body" id="custom-chart-body">
@@ -1039,7 +1085,7 @@
                         <tr>
                             <th>第一子学齢フェーズ</th>
                             <th>世帯月額学費/保育</th>
-                            <th>世帯月額生活/習い事</th>
+                            <th>世帯月額生活/住居/習い事</th>
                             <th>世帯月額積立</th>
                             <th>期間世帯総負担額</th>
                         </tr>
@@ -1065,72 +1111,72 @@
         stage0: {
             title: '0〜2歳（乳幼児期）',
             items: [
-                { name: 'ミルク・離乳食・食費の増加', amount: 12000 },
-                { name: 'オムツ・おしりふき・生活日用品', amount: 13000 },
-                { name: 'ベビー服・靴・身の回り品', amount: 6000 },
-                { name: '小児医療・衛生費・その他雑費', amount: 4000 }
+                { name: 'ミルク・離乳食・食費の増加', amount: 10000 },
+                { name: 'オムツ・おしりふき・生活日用品', amount: 10000 },
+                { name: 'ベビー服・靴・身の回り品', amount: 5000 },
+                { name: '小児医療・衛生費・その他雑費', amount: 3000 }
             ]
         },
         stage1: {
             title: '3〜5歳（幼児期）',
             items: [
-                { name: '幼児食費・おやつ代増加', amount: 18000 },
-                { name: '生活日用品・消耗品', amount: 8000 },
-                { name: '子供服・靴・身の回り品', amount: 8000 },
-                { name: '医療費・衛生・イベント雑費', amount: 6000 }
+                { name: '幼児食費・おやつ代増加', amount: 15000 },
+                { name: '生活日用品・消耗品', amount: 7000 },
+                { name: '子供服・靴・身の回り品', amount: 6000 },
+                { name: '医療費・衛生・イベント雑費', amount: 5000 }
             ]
         },
         stage2: {
             title: '小学生（6〜11歳）',
             items: [
-                { name: '食費の増加（学校給食除く日常食）', amount: 23000 },
-                { name: '日用品・学用品・消耗品', amount: 8000 },
-                { name: '衣料費・運動靴・身の回り品', amount: 8000 },
-                { name: 'お遣い・通信補填・医療その他', amount: 6000 }
+                { name: '食費の増加（学校給食除く日常食）', amount: 19000 },
+                { name: '日用品・学用品・消耗品', amount: 7000 },
+                { name: '衣料費・運動靴・身の回り品', amount: 6000 },
+                { name: 'お遣い・通信補填・医療その他', amount: 5000 }
             ]
         },
         stage3: {
             title: '中学生（12〜14歳）',
             items: [
-                { name: '食費の増加（成長期・部活食費）', amount: 30000 },
-                { name: '日用品・部活動消耗品', amount: 8000 },
-                { name: '衣料費・制服メンテナンス・靴', amount: 8000 },
-                { name: 'スマホ代補助・お小遣い・雑費', amount: 9000 }
+                { name: '食費の増加（成長期・部活食費）', amount: 25000 },
+                { name: '日用品・部活動消耗品', amount: 7000 },
+                { name: '衣料費・制服メンテナンス・靴', amount: 7000 },
+                { name: 'スマホ代補助・お小遣い・雑費', amount: 8000 }
             ]
         },
         stage4: {
             title: '高校生（15〜17歳）',
             items: [
-                { name: '食費の増加（購買・昼食・外食増）', amount: 35000 },
-                { name: '日用品・文房具・学用品', amount: 8000 },
-                { name: '衣料費・身だしなみ・美容費', amount: 10000 },
-                { name: 'スマホ代・お小遣い・交通費補填', amount: 12000 }
+                { name: '食費の増加（購買・昼食・外食増）', amount: 30000 },
+                { name: '日用品・文房具・学用品', amount: 7000 },
+                { name: '衣料費・身だしなみ・美容費', amount: 8000 },
+                { name: 'スマホ代・お小遣い・交通費補填', amount: 10000 }
             ]
         },
         stage5: {
             title: '大学生（18〜21歳自宅通学）',
             items: [
-                { name: '自宅食費・大人と同等の食生活補助', amount: 40000 },
-                { name: '日用品・個人生活用品', amount: 8000 },
-                { name: '衣料費・身の回り費', amount: 12000 },
-                { name: '通信費・定期代等小遣い補助', amount: 15000 }
+                { name: '自宅食費・大人と同等の食生活補助', amount: 35000 },
+                { name: '日用品・個人生活用品', amount: 7000 },
+                { name: '衣料費・身の回り費', amount: 10000 },
+                { name: '通信費・定期代等小遣い補助', amount: 12000 }
             ]
         }
     };
 
     const stageCramData = {
         stage2: [
-            { name: 'スポーツ系（スイミング・体操等）', amount: 10000 },
-            { name: '教養・語学（ピアノ・英会話等）', amount: 10000 },
-            { name: '学習塾・予習教材・通信教育', amount: 10000 }
+            { name: 'スポーツ系（スイミング・体操等）', amount: 8000 },
+            { name: '教養・語学（ピアノ・英会話等）', amount: 8000 },
+            { name: '学習塾・予習教材・通信教育', amount: 9000 }
         ],
         stage3: [
-            { name: '高校受験対策・進学塾費用', amount: 32000 },
-            { name: '部活動関連費・用具・遠征費', amount: 8000 }
+            { name: '高校受験対策・進学塾費用', amount: 25000 },
+            { name: '部活動関連費・用具・遠征費', amount: 7000 }
         ],
         stage4: [
-            { name: '大学受験予備校・塾代', amount: 38000 },
-            { name: '参考書・模試・検定費用', amount: 7000 }
+            { name: '大学受験予備校・塾代', amount: 30000 },
+            { name: '参考書・模試・検定費用', amount: 6000 }
         ]
     };
 
@@ -1152,6 +1198,16 @@
             wrapper.style.display = 'none';
         }
         recalculate();
+    }
+
+    function toggleHousingCustomInput() {
+        const type = document.getElementById('sel-housing-type').value;
+        const wrapper = document.getElementById('wrapper-housing-custom');
+        if (type === 'custom') {
+            wrapper.style.display = 'block';
+        } else {
+            wrapper.style.display = 'none';
+        }
     }
 
     function switchInputMode(mode) {
@@ -1308,6 +1364,63 @@
         }
     }
 
+    // コスト水準モデルの適用（提案1：節約、提案2：メリハリ、中央値、平均、ゆとり）
+    function applyCostModel(modelType) {
+        document.getElementById('btn-cost-bottom25').classList.remove('active');
+        document.getElementById('btn-cost-focused').classList.remove('active');
+        document.getElementById('btn-cost-median').classList.remove('active');
+        document.getElementById('btn-cost-average').classList.remove('active');
+        document.getElementById('btn-cost-high').classList.remove('active');
+
+        const descText = document.getElementById('text-cost-model-desc');
+
+        if (modelType === 'bottom25') {
+            document.getElementById('btn-cost-bottom25').classList.add('active');
+            descText.innerText = "※【提案1】統計の下位25%水準。習い事や塾代を必要最低限（月1.2万〜2.0万円）に抑えた節約モデル。";
+            document.getElementById('inp-cram-elem').value = 12000;
+            document.getElementById('inp-cram-jhs').value = 20000;
+            document.getElementById('inp-cram-hs').value = 20000;
+            document.getElementById('inp-target-savings').value = 3500000;
+            document.getElementById('sel-housing-type').value = 'auto';
+        } else if (modelType === 'focused') {
+            document.getElementById('btn-cost-focused').classList.add('active');
+            descText.innerText = "※【提案2】平常時は通信教育等に抑え、受験学年（中3・高3）に集中して通塾するメリハリ平準化モデル。";
+            document.getElementById('inp-cram-elem').value = 5000;
+            document.getElementById('inp-cram-jhs').value = 15000;
+            document.getElementById('inp-cram-hs').value = 18000;
+            document.getElementById('inp-target-savings').value = 3500000;
+            document.getElementById('sel-housing-type').value = 'auto';
+        } else if (modelType === 'median') {
+            document.getElementById('btn-cost-median').classList.add('active');
+            descText.innerText = "※外れ値（高額課金層）を除いた実情に近い「中央値」をベースに設定しています（平均の約80〜85%）。";
+            document.getElementById('inp-cram-elem').value = 25000;
+            document.getElementById('inp-cram-jhs').value = 32000;
+            document.getElementById('inp-cram-hs').value = 36000;
+            document.getElementById('inp-target-savings').value = 5000000;
+            document.getElementById('sel-housing-type').value = 'standard';
+        } else if (modelType === 'average') {
+            document.getElementById('btn-cost-average').classList.add('active');
+            descText.innerText = "※統計データ（文部科学省・都統計）の「東京都平均相場」をベースに設定しています。";
+            document.getElementById('inp-cram-elem').value = 30000;
+            document.getElementById('inp-cram-jhs').value = 40000;
+            document.getElementById('inp-cram-hs').value = 45000;
+            document.getElementById('inp-target-savings').value = 6000000;
+            document.getElementById('sel-housing-type').value = 'standard';
+        } else if (modelType === 'high') {
+            document.getElementById('btn-cost-high').classList.add('active');
+            descText.innerText = "※上位15〜20%層（平均＋1σ想定）。中学受験、複数習い事、広い住宅への住み替え等を想定。";
+            document.getElementById('inp-cram-elem').value = 45000;
+            document.getElementById('inp-cram-jhs').value = 55000;
+            document.getElementById('inp-cram-hs').value = 60000;
+            document.getElementById('inp-target-savings').value = 8000000;
+            document.getElementById('sel-housing-type').value = 'large';
+        }
+
+        syncSummaryCramToDetails();
+        toggleHousingCustomInput();
+        recalculate();
+    }
+
     function applyPreset(type) {
         document.querySelectorAll('.preset-btn-group .btn').forEach(b => b.classList.remove('active'));
 
@@ -1317,27 +1430,18 @@
             document.getElementById('sel-jhs').value = 'public';
             document.getElementById('sel-hs').value = 'public';
             document.getElementById('sel-univ').value = 'private-arts';
-            document.getElementById('inp-cram-elem').value = 30000;
-            document.getElementById('inp-cram-jhs').value = 40000;
-            document.getElementById('inp-cram-hs').value = 45000;
         } else if (type === 'tokyo-private-high') {
             document.getElementById('btn-preset-tokyo-private-high').classList.add('active');
             document.getElementById('sel-elem').value = 'public';
             document.getElementById('sel-jhs').value = 'public';
             document.getElementById('sel-hs').value = 'private';
             document.getElementById('sel-univ').value = 'private-arts';
-            document.getElementById('inp-cram-elem').value = 30000;
-            document.getElementById('inp-cram-jhs').value = 45000;
-            document.getElementById('inp-cram-hs').value = 50000;
         } else if (type === 'tokyo-exam') {
             document.getElementById('btn-preset-tokyo-exam').classList.add('active');
             document.getElementById('sel-elem').value = 'public';
             document.getElementById('sel-jhs').value = 'private';
             document.getElementById('sel-hs').value = 'private';
             document.getElementById('sel-univ').value = 'private-sci';
-            document.getElementById('inp-cram-elem').value = 55000;
-            document.getElementById('inp-cram-jhs').value = 25000;
-            document.getElementById('inp-cram-hs').value = 50000;
         }
         syncSummaryCramToDetails();
         recalculate();
@@ -1387,6 +1491,22 @@
         }
 
         return { school: schoolFee, living: livingFee };
+    }
+
+    function getHouseholdHousingCost(year, activeChildCount) {
+        const housingType = document.getElementById('sel-housing-type').value;
+        if (housingType === 'none') return 0;
+        if (housingType === 'standard') return 35000;
+        if (housingType === 'large') return 50000;
+        if (housingType === 'custom') {
+            return parseFloat(document.getElementById('inp-housing-custom').value) || 0;
+        }
+        if (housingType === 'auto') {
+            if (activeChildCount <= 1) return 20000;
+            if (activeChildCount === 2) return 40000;
+            return 60000;
+        }
+        return 0;
     }
 
     function recalculate() {
@@ -1480,22 +1600,29 @@
 
                 let c2 = { school: 0, living: 0 };
                 let c2Save = 0;
+                let c2Active = false;
                 if (hasChild2) {
                     const age2 = y - birthAge2;
                     c2 = getSingleChildCost(age2, config);
                     if (age2 >= 0 && age2 < saveYears) c2Save = monthlySavePerChild;
+                    if (age2 >= 0 && age2 < 22) c2Active = true;
                 }
 
                 let c3 = { school: 0, living: 0 };
                 let c3Save = 0;
+                let c3Active = false;
                 if (hasChild3) {
                     const age3 = y - birthAge3;
                     c3 = getSingleChildCost(age3, config);
                     if (age3 >= 0 && age3 < saveYears) c3Save = monthlySavePerChild;
+                    if (age3 >= 0 && age3 < 22) c3Active = true;
                 }
 
+                const currentActiveChildCount = 1 + (c2Active ? 1 : 0) + (c3Active ? 1 : 0);
+                const householdHousingFee = getHouseholdHousingCost(y, currentActiveChildCount);
+
                 const yearSchool = c1.school + c2.school + c3.school;
-                const yearLiving = c1.living + c2.living + c3.living;
+                const yearLiving = c1.living + c2.living + c3.living + householdHousingFee;
                 const yearSave = c1Save + c2Save + c3Save;
 
                 yearlyCosts.push({
